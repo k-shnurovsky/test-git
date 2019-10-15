@@ -1,4 +1,1 @@
-Sitemap: https://www.24orebs.com/sitemap_it.xml
-
-User-agent: *
-Allow: /
+dev-br-1
