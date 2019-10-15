@@ -1,0 +1,53 @@
+version: '3.1'
+
+services:
+
+  wordpress:
+    image: wordpress:5.1
+    restart: always
+    ports:
+      - 8081:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: ${DB_USER:-exampleuser}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-examplepass}
+      WORDPRESS_DB_NAME: ${DB_NAME:-exampledb}
+      WORDPRESS_CONFIG_EXTRA: define('WP_SITEURL', 'http://localhost:8081/'); define('WP_HOME', 'http://localhost:8081/');
+    volumes:
+      - ./wp-content/:/var/www/html/wp-content/
+      - ./vendor/:/var/www/html/vendor/
+      - ./uploads/:/var/www/html/uploads/
+
+    command: bash -c "apt-get update && apt-get install -y --no-install-recommends libssh2-1-dev && pecl install ssh2-1.1.2 && docker-php-ext-enable ssh2.so && docker-entrypoint.sh apache2-foreground"
+    
+    
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-exampledb}
+      MYSQL_USER: ${DB_USER:-exampleuser}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-examplepass}
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - mysql_db:/var/lib/mysql
+    
+    
+  make-copy:
+    image: 77agency/make-copy
+    depends_on:
+      - db
+      - wordpress
+    environment:
+      FROM_HOST: bs24main.rc.77test.co.uk
+      FROM_PORT: 33112
+      FROM_USER: bs24main
+      FROM_PASSWORD: ahs7IeF6Shei
+      FROM_DATABASE: bs24main
+      TO_HOST: db
+      TO_USER: ${DB_USER:-exampleuser}
+      TO_PASSWORD: ${DB_PASSWORD:-examplepass}
+      TO_DATABASE: ${DB_NAME:-exampledb}
+
+volumes:
+  mysql_db:
